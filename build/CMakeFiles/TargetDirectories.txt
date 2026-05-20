@@ -1,0 +1,3 @@
+C:/Users/vladl/Programming/Univer/POO/Git/build/CMakeFiles/mgit.dir
+C:/Users/vladl/Programming/Univer/POO/Git/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/vladl/Programming/Univer/POO/Git/build/CMakeFiles/ZERO_CHECK.dir

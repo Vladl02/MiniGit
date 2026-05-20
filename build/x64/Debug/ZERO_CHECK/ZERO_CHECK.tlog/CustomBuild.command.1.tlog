@@ -1,0 +1,10 @@
+^C:\USERS\VLADL\PROGRAMMING\UNIVER\POO\GIT\BUILD\CMAKEFILES\8F4999B62ACF06B2E2E34DFA1ADB7933\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/vladl/Programming/Univer/POO/Git -BC:/Users/vladl/Programming/Univer/POO/Git/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/vladl/Programming/Univer/POO/Git/build/MiniGit.slnx
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
