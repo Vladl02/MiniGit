@@ -24,7 +24,7 @@ std::shared_ptr<GitObject> Blob::clone() const {
 
 Blob Blob::deserialize(const std::string& data) {
     const std::string marker = "type blob\ncontent:\n";
-    if (data.rfind(marker, 0) != 0) {
+    if (data.substr(0, marker.size()) != marker) {
         throw CorruptedDataException("Invalid blob object");
     }
     return Blob(data.substr(marker.size()));

@@ -7,6 +7,8 @@
 
 #include <chrono>
 #include <ctime>
+#include <iomanip>
+#include <sstream>
 
 Repository::Repository(std::filesystem::path root)
     : root(std::move(root)),
@@ -46,12 +48,34 @@ std::string Repository::commit(const std::string& message) {
     const auto stagedEntries = index.entries();
     requireNotEmpty(stagedEntries, "Tree entries");
 
-    const Tree tree(stagedEntries);
+    std::vector<TreeEntry> treeEntries;
+    const auto parentHash = refs.headCommit();
+    if (parentHash) {
+        const Commit parentCommit = commitStore.get(*parentHash);
+        treeEntries = treeStore.get(parentCommit.treeHash()).entries();
+    }
+
+    for (const auto& stagedEntry : stagedEntries) {
+        bool found = false;
+        for (auto& treeEntry : treeEntries) {
+            if (treeEntry.path == stagedEntry.path) {
+                treeEntry.blobHash = stagedEntry.blobHash;
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            treeEntries.push_back(stagedEntry);
+        }
+    }
+
+    const Tree tree(treeEntries);
     const std::string treeHash = treeStore.add(tree);
 
     const Commit commitObject = CommitBuilder()
         .setTreeHash(treeHash)
-        .setParentHash(refs.headCommit())
+        .setParentHash(parentHash)
         .setAuthor("MiniGit User")
         .setTimestamp(currentTimestamp())
         .setMessage(message)
@@ -63,7 +87,7 @@ std::string Repository::commit(const std::string& message) {
     return commitHash;
 }
 
-std::vector<CommitLogEntry> Repository::log() const {
+std::vector<CommitLogEntry> Repository::log() {
     ensureInitialized();
     std::vector<CommitLogEntry> result;
     auto current = refs.headCommit();
@@ -86,7 +110,7 @@ std::string Repository::catObject(const std::string& hash) const {
     return database.loadRaw(hash);
 }
 
-void Repository::checkout(const std::string& commitHash) const {
+void Repository::checkout(const std::string& commitHash) {
     ensureInitialized();
     const Commit commitObject = commitStore.get(commitHash);
     const Tree tree = treeStore.get(commitObject.treeHash());
@@ -94,7 +118,10 @@ void Repository::checkout(const std::string& commitHash) const {
 }
 
 std::string Repository::currentTimestamp() const {
-    const auto now = std::chrono::system_clock::now();
-    const std::time_t time = std::chrono::system_clock::to_time_t(now);
-    return std::to_string(static_cast<long long>(time));
+    auto currentTime = std::time(nullptr);
+    auto localTime = *std::localtime(&currentTime);
+
+    std::ostringstream out;
+    out << std::put_time(&localTime, "%d-%m-%Y %H-%M-%S");
+    return out.str();
 }

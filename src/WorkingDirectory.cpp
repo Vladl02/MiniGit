@@ -18,10 +18,18 @@ std::string WorkingDirectory::readFile(const std::string& relativePath) const {
     if (!in) {
         throw StorageException("Cannot read file: " + relativePath);
     }
-    return std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+
+    std::string content;
+    char character;
+    while (in.get(character)) {
+        content += character;
+    }
+    return content;
 }
 
-void WorkingDirectory::writeTree(const Tree& tree, const ObjectStore<Blob>& blobs) const {
+void WorkingDirectory::writeTree(const Tree& tree, ObjectStore<Blob>& blobs) const {
+    clearFiles();
+
     for (const auto& entry : tree.entries()) {
         const auto path = resolve(entry.path);
         std::filesystem::create_directories(path.parent_path());
@@ -32,6 +40,20 @@ void WorkingDirectory::writeTree(const Tree& tree, const ObjectStore<Blob>& blob
             throw StorageException("Cannot write file: " + entry.path);
         }
         out << blob.content();
+    }
+}
+
+void WorkingDirectory::clearFiles() const {
+    if (!std::filesystem::exists(root)) {
+        return;
+    }
+
+    for (const auto& entry : std::filesystem::directory_iterator(root)) {
+        if (entry.path().filename() == ".minigit") {
+            continue;
+        }
+
+        std::filesystem::remove_all(entry.path());
     }
 }
 

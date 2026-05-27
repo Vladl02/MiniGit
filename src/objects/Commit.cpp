@@ -68,22 +68,38 @@ Commit Commit::deserialize(const std::string& data) {
         throw CorruptedDataException("Invalid commit object");
     }
 
-    auto readPrefixedLine = [&in](const std::string& prefix) {
-        std::string current;
-        if (!std::getline(in, current) || current.rfind(prefix, 0) != 0) {
-            throw CorruptedDataException("Invalid commit field: " + prefix);
-        }
-        return current.substr(prefix.size());
-    };
+    std::getline(in, line);
+    if (line.substr(0, 5) != "tree ") {
+        throw CorruptedDataException("Invalid commit field: tree");
+    }
+    treeHash = line.substr(5);
 
-    treeHash = readPrefixedLine("tree ");
-    const std::string parentValue = readPrefixedLine("parent ");
+    std::getline(in, line);
+    if (line.substr(0, 7) != "parent ") {
+        throw CorruptedDataException("Invalid commit field: parent");
+    }
+    const std::string parentValue = line.substr(7);
     if (parentValue != "none") {
         parentHash = parentValue;
     }
-    author = readPrefixedLine("author ");
-    timestamp = readPrefixedLine("timestamp ");
-    message = readPrefixedLine("message ");
+
+    std::getline(in, line);
+    if (line.substr(0, 7) != "author ") {
+        throw CorruptedDataException("Invalid commit field: author");
+    }
+    author = line.substr(7);
+
+    std::getline(in, line);
+    if (line.substr(0, 10) != "timestamp ") {
+        throw CorruptedDataException("Invalid commit field: timestamp");
+    }
+    timestamp = line.substr(10);
+
+    std::getline(in, line);
+    if (line.substr(0, 8) != "message ") {
+        throw CorruptedDataException("Invalid commit field: message");
+    }
+    message = line.substr(8);
 
     return Commit(std::move(treeHash), std::move(parentHash), std::move(author), std::move(timestamp), std::move(message));
 }

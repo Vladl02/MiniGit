@@ -29,7 +29,13 @@ std::string ObjectDatabase::loadRaw(const std::string& hash) const {
     if (!in) {
         throw NotFoundException("Object hash not found: " + hash);
     }
-    return std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+
+    std::string data;
+    char character;
+    while (in.get(character)) {
+        data += character;
+    }
+    return data;
 }
 
 bool ObjectDatabase::contains(const std::string& hash) const {

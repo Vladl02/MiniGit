@@ -27,10 +27,10 @@ public:
     void ensureInitialized() const;
     std::string addFile(const std::string& path);
     std::string commit(const std::string& message);
-    std::vector<CommitLogEntry> log() const;
+    std::vector<CommitLogEntry> log();
     std::vector<TreeEntry> status() const;
     std::string catObject(const std::string& hash) const;
-    void checkout(const std::string& commitHash) const;
+    void checkout(const std::string& commitHash);
 
 private:
     std::string currentTimestamp() const;
